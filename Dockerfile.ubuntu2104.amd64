@@ -1,0 +1,40 @@
+FROM ubuntu:21.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+ENV STEAMDIR /home/steam/steamcmd
+ENV STEAMUSER steam
+
+RUN apt-get update && \
+    apt-get install python3-dev python3-pip wget -y
+
+RUN apt-get update && \
+    apt-get install -y git lib32gcc-s1
+
+RUN useradd -m "$STEAMUSER" && \
+    su "$STEAMUSER" -c \
+    "mkdir -p ${STEAMDIR} && \
+    cd ${STEAMDIR} && \
+    wget -O- 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' | tar zxf -"
+
+USER "$STEAMUSER"
+WORKDIR "$STEAMDIR"
+
+RUN ls -l linux32
+
+RUN ./steamcmd.sh \
+    +login anonymous \
+    +force_install_dir ./steamapps/common/qlds/ \
+    +app_update 349090 \
+    +quit
+
+WORKDIR "$STEAMDIR/steamapps/common/qlds"
+
+COPY minqlx-plugins $STEAMDIR/steamapps/common/qlds/minqlx-plugins
+
+USER root
+RUN  apt-get install -y libzmq3-dev cython3
+
+USER "$STEAMUSER"
+
+RUN python3 -m pip install "redis>=2.10, <3.0" hiredis requests pyzmq==18.0.1

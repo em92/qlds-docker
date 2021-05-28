@@ -1,0 +1,37 @@
+version: '3.4'
+
+x-server:
+  &default-server
+  entrypoint: /minqlx_entrypoint.sh
+  tty: true
+  depends_on:
+    - redis
+  volumes:
+    - ./minqlx:/mnt/minqlx
+    - ./minqlx_entrypoint.sh:/minqlx_entrypoint.sh
+    - ./server.cfg:/home/steam/steamcmd/steamapps/common/qlds/baseq3/server.cfg
+    - type: bind
+      source: ./minqlx-plugins
+      target: /home/steam/steamcmd/steamapps/common/qlds/minqlx-plugins
+
+services:
+  server_x86:
+    << : *default-server
+    build:
+      context: .
+      dockerfile: Dockerfile.i386
+
+  server_x64:
+    << : *default-server
+    build:
+      context: .
+      dockerfile: Dockerfile.amd64
+
+  ubuntu2104:
+    << : *default-server
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu2104.amd64
+
+  redis:
+    image: redis:6

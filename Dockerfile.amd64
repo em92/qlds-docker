@@ -1,0 +1,31 @@
+FROM debian:bullseye
+
+ENV STEAMDIR /home/steam/steamcmd
+ENV STEAMUSER steam
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install python3-dev python3-pip wget -y
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install git lib32gcc1 -y
+
+RUN useradd -m "$STEAMUSER" && \
+    su "$STEAMUSER" -c \
+    "mkdir -p ${STEAMDIR} && \
+    cd ${STEAMDIR} && \
+    wget -O- 'https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz' | tar zxf -"
+
+USER "$STEAMUSER"
+WORKDIR "$STEAMDIR"
+
+RUN ./steamcmd.sh \
+    +login anonymous \
+    +force_install_dir ./steamapps/common/qlds/ \
+    +app_update 349090 \
+    +quit
+
+WORKDIR "$STEAMDIR/steamapps/common/qlds"
+
+COPY minqlx-plugins $STEAMDIR/steamapps/common/qlds/minqlx-plugins
+
+RUN python3 -m pip install -r minqlx-plugins/requirements.txt
