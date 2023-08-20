@@ -4,6 +4,8 @@ x-server:
   &default-server
   entrypoint: /minqlx_entrypoint.sh
   tty: true
+  ports:
+    - "27961:27960/udp"
   depends_on:
     - redis
   volumes:
@@ -34,4 +36,4 @@ services:
       dockerfile: Dockerfile.ubuntu2104.amd64
 
   redis:
-    image: redis:6
+    image: redis:5
